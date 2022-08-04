@@ -40,13 +40,24 @@ send_result <- function(rps, file) {
 }
 
 #' @export
-score_player <- function(p1_score, p2_score) {
+get_player_score <- function(p1_score, p2_score) {
   min_length <- min(lengths(list(p1_score, p2_score)))
   if (min_length == 0) return(0)
 
   p1_vals <- match(p1_score, RPS)[1:min_length]
   p2_vals <- match(p2_score, RPS)[1:min_length]
   sum((p1_vals - 1) %% 3 == p2_vals %% 3)
+}
+
+#' @export
+get_player_result <- function(p1_score, p2_score) {
+  if (p1_score == p2_score) {
+    "Draw!"
+  } else if (get_player_score(p1_score, p2_score) == 1) {
+    "You win!"
+  } else {
+    "You lose!"
+  }
 }
 
 RPS <- c("rock", "paper", "scissors")

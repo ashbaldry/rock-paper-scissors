@@ -135,15 +135,18 @@ server <- function(id) {
     )
 
     ready <- shiny::reactive({
-      shiny::req(player_ready(), opposition_ready())
-
       all(
-        player_ready(),
-        opposition_ready(),
-        n_games() == length(player_choices()),
-        n_games() == length(opposition_choices())
+        player_choices()[1] != "",
+        opponent_choices()[1] != "",
+        n_games() + 1 == length(player_choices()),
+        n_games() + 1 == length(opponent_choices())
       )
     })
+
+    shiny::observe(priority = -1, {
+      if (ready()) writeLines(as.character(n_games() + 1), ngames_file())
+    }) |>
+      shiny::bindEvent(ready())
 
     list(
       game = game_id,
