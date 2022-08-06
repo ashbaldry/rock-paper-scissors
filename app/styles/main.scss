@@ -37,6 +37,7 @@ button {
   font-family: $font-family;
   font-size: 1.2em;
   border-radius: 0.5em;
+  cursor: pointer;
 }
 
 .image-button {
@@ -47,7 +48,6 @@ button {
   transition: .5s;
   margin: 0 0.2em;
   max-width: 30%;
-  cursor: pointer;
 }
 
 .image-button::before {
