@@ -1,6 +1,6 @@
 box::use(
   shiny,
-  htmltools[tags],
+  htmltools[tags, tagList],
   app/ui/ui_elems[button, text_input, modal],
   app/logic/game[create_game, get_game_dir]
 )
@@ -9,9 +9,15 @@ box::use(
 ui <- function(id) {
   ns <- shiny::NS(id)
 
-  tags$section(
-    button(ns("create"), "Create Game"),
-    button(ns("join"), "Join Game")
+  tagList(
+    tags$section(
+      button(ns("create"), "Create Game"),
+      button(ns("join"), "Join Game")
+    ),
+    tags$section(
+      "Game ID:",
+      tags$b(shiny::textOutput(ns("game_id"), inline = TRUE))
+    )
   )
 }
 
@@ -23,6 +29,11 @@ server <- function(id) {
     game_dir <- shiny::reactiveVal()
     game_id <- shiny::reactiveVal()
     player_id <- shiny::reactiveVal(0)
+
+    n_games <- shiny::reactiveVal(0)
+    player_ready <- shiny::reactiveVal(FALSE)
+    opponent_ready <- shiny::reactiveVal(FALSE)
+    ready <- shiny::reactiveVal(FALSE)
 
     shiny::observe({
       shiny::insertUI(
@@ -50,6 +61,8 @@ server <- function(id) {
 
     shiny::observe({
       player_id(1)
+      n_games(0)
+
       game_dir <- create_game()
       game_dir(game_dir)
       game_id(basename(game_dir))
@@ -74,6 +87,8 @@ server <- function(id) {
         )
       } else {
         player_id(2)
+        n_games(0)
+
         game_dir(game_dir)
         game_id(input$game_id)
         shiny::removeUI(selector = paste0("#", ns("join_modal")))
@@ -83,85 +98,73 @@ server <- function(id) {
         input$submit
       )
 
+    output$game_id <- shiny::renderText(game_id())
+
     #### Extra Reactives ####
     player_file <- shiny::reactive({
       shiny::req(game_dir())
       file.path(game_dir(), paste0("player_", player_id(), ".txt"))
     })
-    player_choices <- shiny::reactivePoll(
-      100,
-      session, \() if (is.null(game_dir())) "" else file.info(player_file())$mtime,
-      \() readLines(player_file())
-    )
-
-    player_ready_file <- shiny::reactive({
-      shiny::req(game_dir())
-      file.path(game_dir(), paste0("player_", player_id(), "_ready.txt"))
-    })
-    player_ready <- shiny::reactivePoll(
-      100,
-      session, \() if (is.null(game_dir())) "" else file.info(player_ready_file())$mtime,
-      \() as.logical(readLines(player_ready_file()))
-    )
 
     opponent_file <- shiny::reactive({
       shiny::req(game_dir())
       file.path(game_dir(), paste0("player_", 3 - player_id(), ".txt"))
     })
-    opponent_choices <- shiny::reactivePoll(
+
+    choices <- shiny::reactivePoll(
       100,
-      session, \() if (is.null(game_dir())) "" else file.info(opponent_file())$mtime,
-      \() readLines(opponent_file())
+      session,
+      \() {
+        if (is.null(game_dir())) {
+          ""
+        } else {
+          max(file.info(c(player_file(), opponent_file()))$mtime)
+        }
+      },
+      \() {
+        list(
+          player = readLines(player_file()),
+          opponent = readLines(opponent_file())
+        )
+      }
     )
 
-    opposition_ready_file <- shiny::reactive({
-      shiny::req(game_dir())
-      file.path(game_dir(), paste0("player_", 3 - player_id(), "_ready.txt"))
-    })
-    opposition_ready <- shiny::reactivePoll(
-      100,
-      session, \() if (is.null(game_dir())) "" else file.info(opposition_ready_file())$mtime,
-      \() as.logical(readLines(opposition_ready_file()))
-    )
+    player_choices <- shiny::reactive(choices()$player)
+    opponent_choices <- shiny::reactive(choices()$opponent)
 
-    ngames_file <- shiny::reactive({
-      shiny::req(game_dir())
-      file.path(game_dir(), "game_number.txt")
-    })
-    n_games <- shiny::reactivePoll(
-      100,
-      session, \() if (is.null(game_dir())) "" else file.info(ngames_file())$mtime,
-      \() as.numeric(readLines(ngames_file()))
-    )
+    shiny::observe({
+      player_chosen <- length(choices()$player) > n_games()
+      opponent_chosen <- length(choices()$opponent) > n_games()
 
-    ready <- shiny::reactive({
-      all(
-        player_choices()[1] != "",
-        opponent_choices()[1] != "",
-        n_games() + 1 == length(player_choices()),
-        n_games() + 1 == length(opponent_choices())
+      player_ready(player_chosen)
+      opponent_ready(opponent_chosen)
+      ready(player_chosen && opponent_chosen)
+    }) |>
+      shiny::bindEvent(
+        choices()
       )
-    })
 
     shiny::observe(priority = -1, {
-      if (ready()) writeLines(as.character(n_games() + 1), ngames_file())
+      if (ready()) {
+        n_games(n_games() + 1)
+        ready(FALSE)
+      }
     }) |>
-      shiny::bindEvent(ready())
+      shiny::bindEvent(
+        ready()
+      )
 
     list(
       game = game_id,
       game_dir = game_dir,
       n_games = n_games,
-      ngames_file = ngames_file,
       player = player_id,
       player_file = player_file,
       player_choices = player_choices,
-      player_ready_file = player_ready_file,
-      player_ready = player_ready,
       opponent_file = opponent_file,
       opponent_choices = opponent_choices,
-      opposition_ready_file = opposition_ready_file,
-      opposition_ready = opposition_ready,
+      player_ready = player_ready,
+      opponent_ready = opponent_ready,
       ready = ready
     )
   })

@@ -19,13 +19,18 @@ image_button <- function(id, img_name) {
     id = id,
     class = "image-button action-button",
     type = "button",
-    tags$img(
-      style = "height: 200px; width: 200px;",
-      class = "button-image-icon",
-      src = paste0("static/", img_name, ".jpeg"),
-      alt = img_name,
-      title = img_name
-    )
+    image_jpeg(img_name, class = "button-image-icon")
+  )
+}
+
+#' @export
+image_jpeg <- function(img_name, class = NULL) {
+  tags$img(
+    style = "height: 200px; width: 200px;",
+    class = paste("rps-icon", class),
+    src = paste0("static/", img_name, ".jpeg"),
+    alt = img_name,
+    title = img_name
   )
 }
 

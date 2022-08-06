@@ -10,9 +10,6 @@ create_game <- function() {
 
   file.create(file.path(game_dir, "player_1.txt"))
   file.create(file.path(game_dir, "player_2.txt"))
-  writeLines("FALSE", file.path(game_dir, "player_1_ready.txt"))
-  writeLines("FALSE", file.path(game_dir, "player_2_ready.txt"))
-  writeLines("0", file.path(game_dir, "game_number.txt"))
 
   game_dir
 }

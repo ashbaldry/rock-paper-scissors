@@ -3,7 +3,7 @@ box::use(
   shinyjs,
   htmltools[tags, tagList],
   utils[tail],
-  app/ui/ui_elems[button],
+  app/ui/ui_elems[button, image_jpeg],
   app/logic/game[get_player_score, get_player_result]
 )
 
@@ -17,17 +17,17 @@ ui <- function(id) {
     ),
     shinyjs::hidden(
       tags$section(
-        tags$div(
-        style = "display: flex;",
         id = ns("results"),
-        tags$section(
-          tags$h3("Player"),
-          shiny::uiOutput(ns("player_choice"))
-        ),
-        tags$section(
-          tags$h3("Opponent"),
-          shiny::uiOutput(ns("opponent_choice"))
-        )
+        tags$div(
+          style = "display: flex;",
+          tags$section(
+            tags$h3("Player"),
+            shiny::uiOutput(ns("player_choice"))
+          ),
+          tags$section(
+            tags$h3("Opponent"),
+            shiny::uiOutput(ns("opponent_choice"))
+          )
         ),
         shiny::textOutput(ns("player_result"))
       )
@@ -54,9 +54,6 @@ ui <- function(id) {
 #' @export
 server <- function(id, game_info) {
   shiny::moduleServer(id, function(input, output, session) {
-    shiny::observe(shinyjs::hide(id = "player_ready")) |>
-      shiny::bindEvent(game_info$ready())
-
     move_timer <- shiny::reactiveTimer(100)
     countdown <- shiny::reactiveVal(0)
 
@@ -88,40 +85,28 @@ server <- function(id, game_info) {
 
     output$rps <- shiny::renderText(rps())
 
+    #### Current Result ####
     player_choice <- shiny::reactive({
       shiny::req(game_info$player_choices())
       tail(game_info$player_choices(), 1)
     })
-
-    output$player_choice <- shiny::renderUI({
-      tags$img(
-        style = "height: 200px; width: 200px;",
-        class = "button-image-icon",
-        src = paste0("static/", player_choice(), ".jpeg"),
-        alt = player_choice(),
-        title = player_choice()
-      )
-    })
+    output$player_choice <- shiny::renderUI(image_jpeg(player_choice()))
+    shiny::outputOptions(output, "player_choice", suspendWhenHidden = FALSE)
 
     opponent_choice <- shiny::reactive({
       shiny::req(game_info$opponent_choices())
-      tail(game_info$opponent_choices(), 1)
+      if (length(game_info$opponent_choices()) == game_info$n_games()) {
+        tail(game_info$opponent_choices(), 1)
+      } else {
+        tail(game_info$opponent_choices(), 2)[1]
+      }
     })
+    output$opponent_choice <- shiny::renderUI(image_jpeg(opponent_choice()))
+    shiny::outputOptions(output, "opponent_choice", suspendWhenHidden = FALSE)
 
-    output$opponent_choice <- shiny::renderUI({
-      tags$img(
-        style = "height: 200px; width: 200px;",
-        class = "button-image-icon",
-        src = paste0("static/", opponent_choice(), ".jpeg"),
-        alt = opponent_choice(),
-        title = opponent_choice()
-      )
-    })
+    output$player_result <- shiny::renderText(get_player_result(player_choice(), opponent_choice()))
 
-    output$player_result <- shiny::renderText({
-      get_player_result(player_choice(), opponent_choice())
-    })
-
+    #### Overall Score ####
     player_score <- shiny::reactiveVal(0)
     opponent_score <- shiny::reactiveVal(0)
 
@@ -148,5 +133,13 @@ server <- function(id, game_info) {
 
     output$player_score <- shiny::renderText(player_score())
     output$opponent_score <- shiny::renderText(opponent_score())
+
+    #### New Game ####
+    shiny::observe({
+      shinyjs::enable(selector = ".image-button")
+      shinyjs::hide(id = "player_ready")
+      shinyjs::hide(id = "results")
+    }) |>
+      shiny::bindEvent(input$player_ready)
   })
 }
