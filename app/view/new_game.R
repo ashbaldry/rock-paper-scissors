@@ -15,6 +15,7 @@ ui <- function(id) {
       button(ns("join"), "Join Game")
     ),
     tags$section(
+      class = "game-id",
       "Game ID:",
       tags$b(shiny::textOutput(ns("game_id"), inline = TRUE))
     )
@@ -37,19 +38,24 @@ server <- function(id) {
 
     shiny::observe({
       shiny::insertUI(
-        selector = "body",
-        where = "beforeEnd",
+        selector = ".game-id",
+        where = "afterEnd",
         modal(
           id = ns("join_modal"),
+          class = "join-modal",
           title = "Join Game",
           tags$form(
             tags$fieldset(
               id = ns("game_field"),
-              text_input(ns("game_id"), "Game ID")
-            ),
-            button(
-              ns("submit"),
-              "Join"
+              text_input(ns("game_id"), "Game ID"),
+              button(
+                ns("submit"),
+                "Join"
+              ),
+              button(
+                ns("cancel"),
+                "Cancel"
+              )
             )
           )
         )
@@ -96,6 +102,14 @@ server <- function(id) {
     }) |>
       shiny::bindEvent(
         input$submit
+      )
+
+    shiny::observe({
+      shiny::removeUI(selector = paste0("#", ns("invalid_game")))
+      shiny::removeUI(selector = paste0("#", ns("join_modal")))
+    }) |>
+      shiny::bindEvent(
+        input$cancel
       )
 
     output$game_id <- shiny::renderText(game_id())

@@ -17,7 +17,10 @@ ui <- function(id) {
       tags$meta(name = "viewport", content = "width=device-width, initial-scale=1"),
       tags$link(rel = "preconnect", href = "https://fonts.googleapis.com"),
       tags$link(rel = "preconnect", href = "https://fonts.gstatic.com", crossorigin = NA),
-      tags$link(href = "https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap", rel = "stylesheet"),
+      tags$link(
+        href = "https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Roboto+Mono&display=swap",
+        rel = "stylesheet"
+      ),
       useShinyjs()
     ),
     tags$body(

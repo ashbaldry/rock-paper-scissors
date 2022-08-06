@@ -27,7 +27,7 @@ image_button <- function(id, img_name) {
 image_jpeg <- function(img_name, class = NULL) {
   tags$img(
     class = paste("rps-icon", class),
-    src = paste0("static/", img_name, ".jpeg"),
+    src = paste0("static/", img_name, ".png"),
     alt = img_name,
     title = img_name
   )

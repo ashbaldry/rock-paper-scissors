@@ -13,6 +13,7 @@ ui <- function(id) {
 
   tagList(
     tags$section(
+      class = "scores",
       tags$aside(
         class = "player-score",
         tags$h2("Player:", shiny::textOutput(ns("player_score"), inline = TRUE))
@@ -35,17 +36,22 @@ ui <- function(id) {
       tags$section(
         id = ns("results"),
         tags$div(
+          id = ns("player_result"),
+          class = "shiny-text-output player-result"
+        ),
+        tags$div(
           class = "game-result",
           tags$section(
+            class = "person-result",
             tags$h3("Player"),
-            shiny::uiOutput(ns("player_choice"))
+            shiny::uiOutput(ns("player_choice"), class = "person-choice")
           ),
           tags$section(
+            class = "person-result",
             tags$h3("Opponent"),
-            shiny::uiOutput(ns("opponent_choice"))
+            shiny::uiOutput(ns("opponent_choice"), class = "person-choice")
           )
-        ),
-        shiny::textOutput(ns("player_result"))
+        )
       )
     )
   )
