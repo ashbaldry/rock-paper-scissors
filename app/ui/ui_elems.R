@@ -26,7 +26,6 @@ image_button <- function(id, img_name) {
 #' @export
 image_jpeg <- function(img_name, class = NULL) {
   tags$img(
-    style = "height: 200px; width: 200px;",
     class = paste("rps-icon", class),
     src = paste0("static/", img_name, ".jpeg"),
     alt = img_name,

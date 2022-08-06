@@ -13,13 +13,29 @@ ui <- function(id) {
 
   tagList(
     tags$section(
+      tags$aside(
+        class = "player-score",
+        tags$h2("Player:", shiny::textOutput(ns("player_score"), inline = TRUE))
+      ),
+      tags$aside(
+        class = "opponent-score",
+        tags$h2("Opponent:", shiny::textOutput(ns("opponent_score"), inline = TRUE))
+      ),
+      tags$section(
+        shinyjs::hidden(
+          button(ns("player_ready"), "New Game")
+        )
+      )
+    ),
+    tags$section(
+      class = "rps-countdown",
       shiny::textOutput(ns("rps"))
     ),
     shinyjs::hidden(
       tags$section(
         id = ns("results"),
         tags$div(
-          style = "display: flex;",
+          class = "game-result",
           tags$section(
             tags$h3("Player"),
             shiny::uiOutput(ns("player_choice"))
@@ -30,21 +46,6 @@ ui <- function(id) {
           )
         ),
         shiny::textOutput(ns("player_result"))
-      )
-    ),
-    tags$aside(
-      class = "player-score",
-      style = "float: left;",
-      tags$h4("Player:", shiny::textOutput(ns("player_score"), inline = TRUE))
-    ),
-    tags$aside(
-      class = "oppositon-score",
-      style = "float: right;",
-      tags$h4("Opponent:", shiny::textOutput(ns("opponent_score"), inline = TRUE))
-    ),
-    tags$section(
-      shinyjs::hidden(
-        button(ns("player_ready"), "New Game")
       )
     )
   )
