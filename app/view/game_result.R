@@ -112,6 +112,7 @@ server <- function(id, game_info) {
     shiny::outputOptions(output, "opponent_choice", suspendWhenHidden = FALSE)
 
     output$player_result <- shiny::renderText(get_player_result(player_choice(), opponent_choice()))
+    shiny::outputOptions(output, "player_result", suspendWhenHidden = FALSE)
 
     #### Overall Score ####
     player_score <- shiny::reactiveVal(0)
