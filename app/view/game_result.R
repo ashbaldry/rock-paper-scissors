@@ -21,11 +21,6 @@ ui <- function(id) {
       tags$aside(
         class = "opponent-score",
         tags$h2("Opponent:", shiny::textOutput(ns("opponent_score"), inline = TRUE))
-      ),
-      tags$section(
-        shinyjs::hidden(
-          button(ns("player_ready"), "New Game")
-        )
       )
     ),
     tags$section(
@@ -38,6 +33,11 @@ ui <- function(id) {
         tags$div(
           id = ns("player_result"),
           class = "shiny-text-output player-result"
+        ),
+        tags$section(
+          shinyjs::hidden(
+            button(ns("player_ready"), "New Game", class = "ready-button")
+          )
         ),
         tags$div(
           class = "game-result",
