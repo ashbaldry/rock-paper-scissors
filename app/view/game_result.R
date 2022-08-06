@@ -57,7 +57,7 @@ server <- function(id, game_info) {
     shiny::observe(shinyjs::hide(id = "player_ready")) |>
       shiny::bindEvent(game_info$ready())
 
-    move_timer <- shiny::reactiveTimer(200)
+    move_timer <- shiny::reactiveTimer(100)
     countdown <- shiny::reactiveVal(0)
 
     shiny::observe({
@@ -69,7 +69,7 @@ server <- function(id, game_info) {
 
     shiny::observe({
       if (countdown() > 0) {
-        countdown(max(countdown() - 200, 0))
+        countdown(max(countdown() - 100, 0))
         if (countdown() == 0) {
           shinyjs::show(id = "results")
           shinyjs::show(id = "player_ready")
@@ -79,7 +79,6 @@ server <- function(id, game_info) {
       shiny::bindEvent(move_timer())
 
     rps <- shiny::reactive({
-      print(countdown())
       if (countdown() == 0) {
         NULL
       } else {
@@ -123,14 +122,31 @@ server <- function(id, game_info) {
       get_player_result(player_choice(), opponent_choice())
     })
 
-    player_score <- shiny::reactive({
-      get_player_score(game_info$player_choices(), game_info$opponent_choices())
-    })
-    output$player_score <- shiny::renderText(player_score())
+    player_score <- shiny::reactiveVal(0)
+    opponent_score <- shiny::reactiveVal(0)
 
-    opponent_score <- shiny::reactive({
-      get_player_score(game_info$opponent_choices(), game_info$player_choices())
-    })
+    shiny::observe({
+      if (countdown() == 0) {
+        player_score(
+          get_player_score(
+            game_info$player_choices(),
+            game_info$opponent_choices()
+          )
+        )
+        opponent_score(
+          get_player_score(
+            game_info$opponent_choices(),
+            game_info$player_choices()
+          )
+        )
+      }
+    }) |>
+      shiny::bindEvent(
+        countdown(),
+        game_info$game()
+      )
+
+    output$player_score <- shiny::renderText(player_score())
     output$opponent_score <- shiny::renderText(opponent_score())
   })
 }
